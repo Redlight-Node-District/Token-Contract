@@ -3,17 +3,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.0 <0.9.0;
 
-abstract contract Context {
-    function _msgSender() internal view returns (address payable) {
-        return payable(msg.sender);
-    }
-
-    function _msgData() internal view returns (bytes memory) {
-        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
-        return msg.data;
-    }
-}
-
 interface IERC20 {
   /**
    * @dev Returns the amount of tokens in existence.
@@ -157,7 +146,7 @@ contract Test is IERC20 {
 
     mapping (address => bool) private _liquidityHolders;
 
-    uint256 private startingSupply = 2_000_000;
+    uint256 constant private startingSupply = 2_000_000;
 
     string constant private _name = "Test";
     string constant private _symbol = "TEST";
@@ -221,7 +210,7 @@ contract Test is IERC20 {
 
     address private WAVAX;
     address public DEAD = 0x000000000000000000000000000000000000dEaD;
-    address private ZERO = 0x0000000000000000000000000000000000000000;
+    address private zero = 0x0000000000000000000000000000000000000000;
 
     address payable public marketingWallet = payable(0x8C400D07C258e07681587D3DBDc3dF1CE3306DD7);
     address payable private rewardsPool = payable(0xA3b4C11E2625b3A39c838DA649A28B00F3c49cCE);
@@ -234,18 +223,16 @@ contract Test is IERC20 {
     uint256 private swapThreshold = _tTotal / 20000;
     uint256 private swapAmount = _tTotal * 5 / 1000;
     bool inSwap;
-    bool init = false;
 
     bool public tradingEnabled = false;
-    bool public _hasLiqBeenAdded = false;
+    bool public hasLiqBeenAdded = false;
 
     uint256 vBuy1 = 250;
     uint256 vBuy2 = 500;
     uint256 vBuy3 = 1500;
     uint256 vBuy4 = 2500;
-    uint256 whaleFee;
 
-    IERC20 MANSION = IERC20(0xA3b4C11E2625b3A39c838DA649A28B00F3c49cCE);
+    IERC20 mansion = IERC20(0xA3b4C11E2625b3A39c838DA649A28B00F3c49cCE);
 
 
     modifier swapping() {
@@ -283,7 +270,7 @@ contract Test is IERC20 {
         _isFeeExcluded[owner()] = true;
         _isFeeExcluded[address(this)] = true;
 
-        emit Transfer(ZERO, msg.sender, _tTotal);
+        emit Transfer(zero, msg.sender, _tTotal);
         emit OwnershipTransferred(address(0), msgSender);
     }
 
@@ -356,7 +343,7 @@ contract Test is IERC20 {
     }
 
     function setStartingProtections(uint8 _block) external onlyOwner{
-        require (snipeBlockAmt == 0 && _block <= 5 && !_hasLiqBeenAdded);
+        require (snipeBlockAmt == 0 && _block <= 5 && !hasLiqBeenAdded);
         snipeBlockAmt = _block;
     }
 
@@ -387,7 +374,7 @@ contract Test is IERC20 {
     }
 
     function changeRouterContingency(address router) external onlyOwner {
-        require(!_hasLiqBeenAdded);
+        require(!hasLiqBeenAdded);
         currentRouter = router;
     }
 
@@ -397,13 +384,8 @@ contract Test is IERC20 {
 
     function enableTrading() public onlyOwner {
         require(!tradingEnabled, "Trading already enabled!");
-        require(_hasLiqBeenAdded, "Liquidity must be added.");
-        if (snipeBlockAmt == 0 || snipeBlockAmt > 5) {
-            _liqAddBlock = block.number + 500;
-        } else {
-            _liqAddBlock = block.number;
-        }
-        
+        require(hasLiqBeenAdded, "Liquidity must be added.");
+        _liqAddBlock = block.number;
         tradingEnabled = true;
     }
 
@@ -447,13 +429,13 @@ contract Test is IERC20 {
         return (_tTotal - (balanceOf(DEAD) + balanceOf(address(0))));
     }
 
-    function updateMansionAddress(IERC20 _MANSION) external onlyOwner {
-        require(_MANSION != IERC20(address(this)), "Mansion address cannot bet this address");
-        MANSION = IERC20(_MANSION);
+    function updateMansionAddress(IERC20 _mansion) external onlyOwner {
+        require(_mansion != IERC20(address(this)), "Mansion address cannot bet this address");
+        mansion = IERC20(_mansion);
         
     }
 
-    function setNewRouter(address newRouter) public onlyOwner() {
+    function setNewRouter(address newRouter) external onlyOwner() {
         IRouter02 _newRouter = IRouter02(newRouter);
         address get_pair = IFactoryV2(_newRouter.factory()).getPair(address(this), _newRouter.WAVAX());
         if (get_pair == address(0)) {
@@ -467,7 +449,7 @@ contract Test is IERC20 {
     }
 
     function setLpPair(address pair, bool enabled) external onlyOwner {
-        if (enabled == false) {
+        if (enabled = false) {
             lpPairs[pair] = false;
         } else {
             if (timeSinceLastPair != 0) {
@@ -488,11 +470,11 @@ contract Test is IERC20 {
         _maxWalletSize = (_tTotal * percent) / divisor;
     }
 
-    function getMaxTX() public view returns (uint256) {
+    function getMaxTX() external view returns (uint256) {
         return _maxTxAmount / (10**_decimals);
     }
 
-    function getMaxWallet() public view returns (uint256) {
+    function getMaxWallet() external view returns (uint256) {
         return _maxWalletSize / (10**_decimals);
     }
 
@@ -539,9 +521,9 @@ contract Test is IERC20 {
                 revert("Sniper rejected.");
             }
 
-            if (!_hasLiqBeenAdded) {
+            if (!hasLiqBeenAdded) {
                 _checkLiquidityAdd(from, to);
-                if (!_hasLiqBeenAdded && _hasLimits(from, to)) {
+                if (!hasLiqBeenAdded && _hasLimits(from, to)) {
                     revert("Only owner can transfer at this time.");
                 }
             } else {
@@ -606,13 +588,13 @@ contract Test is IERC20 {
     }
 
     function getWhaleFee(address from) public view returns (uint256) {
-        if(MANSION.balanceOf(from) >= 1 &&
-            MANSION.balanceOf(from) < 20 ){return vBuy1;}
-        if(MANSION.balanceOf(from) >= 20 &&
-            MANSION.balanceOf(from) < 50 ){return vBuy2;}
-        if(MANSION.balanceOf(from) >= 50 &&
-            MANSION.balanceOf(from) < 100 ){return vBuy3;}
-        if(MANSION.balanceOf(from) >= 100) {return vBuy4;}
+        if(mansion.balanceOf(from) >= 1 &&
+            mansion.balanceOf(from) < 20 ){return vBuy1;}
+        if(mansion.balanceOf(from) >= 20 &&
+            mansion.balanceOf(from) < 50 ){return vBuy2;}
+        if(mansion.balanceOf(from) >= 50 &&
+            mansion.balanceOf(from) < 100 ){return vBuy3;}
+        if(mansion.balanceOf(from) >= 100) {return vBuy4;}
         else{
             return 0;
         }
@@ -698,7 +680,7 @@ contract Test is IERC20 {
     
 
     function _checkLiquidityAdd(address from, address to) private {
-        require(!_hasLiqBeenAdded, "Liquidity already added and marked.");
+        require(!hasLiqBeenAdded, "Liquidity already added and marked.");
         if (!_hasLimits(from, to) && to == lpPair) {
             if (snipeBlockAmt == 0 || snipeBlockAmt > 5) {
                 _liqAddBlock = block.number + 500;
@@ -707,7 +689,7 @@ contract Test is IERC20 {
             }
 
             _liquidityHolders[from] = true;
-            _hasLiqBeenAdded = true;
+            hasLiqBeenAdded = true;
             
             contractSwapEnabled = true;
             emit ContractSwapEnabledUpdated(true);
