@@ -430,7 +430,7 @@ contract Playmates is IERC20 {
     }
 
     function updateMansionAddress(IERC20 _mansion) external onlyOwner {
-        require(_mansion != IERC20(address(this)), "Mansion address cannot bet this address");
+        require(_mansion != IERC20(address(this)), "Mansion address cannot be this address");
         mansion = IERC20(_mansion);
         
     }
