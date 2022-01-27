@@ -144,7 +144,7 @@ interface IRouter02 is IRouter01 {
     ) external;
 }
 
-contract PLAYMATE is IERC20 {
+contract Test is IERC20 {
     // Ownership moved to in-contract for customizability.
     address private _owner;
 
@@ -159,8 +159,8 @@ contract PLAYMATE is IERC20 {
 
     uint256 private startingSupply = 2_000_000;
 
-    string constant private _name = "Playmate";
-    string constant private _symbol = "PLAYMATE";
+    string constant private _name = "Test";
+    string constant private _symbol = "TEST";
     uint8 private _decimals = 9;
 
     uint256 private _tTotal = startingSupply * (10 ** _decimals);
@@ -239,10 +239,10 @@ contract PLAYMATE is IERC20 {
     bool public tradingEnabled = false;
     bool public _hasLiqBeenAdded = false;
 
-    uint256 vbuy1 = 250;
-    uint256 vbuy2 = 500;
-    uint256 vbuy3 = 1500;
-    uint256 vbuy4 = 2500;
+    uint256 vBuy1 = 250;
+    uint256 vBuy2 = 500;
+    uint256 vBuy3 = 1500;
+    uint256 vBuy4 = 2500;
     uint256 whaleFee;
 
     IERC20 MANSION = IERC20(0xA3b4C11E2625b3A39c838DA649A28B00F3c49cCE);
@@ -356,7 +356,7 @@ contract PLAYMATE is IERC20 {
     }
 
     function setStartingProtections(uint8 _block) external onlyOwner{
-        require (snipeBlockAmt == 0 && !_hasLiqBeenAdded);
+        require (snipeBlockAmt == 0 && _block <= 5 && !_hasLiqBeenAdded);
         snipeBlockAmt = _block;
     }
 
@@ -448,6 +448,7 @@ contract PLAYMATE is IERC20 {
     }
 
     function updateMansionAddress(IERC20 _MANSION) external onlyOwner {
+        require(_MANSION != IERC20(address(this)), "Mansion address cannot bet this address");
         MANSION = IERC20(_MANSION);
         
     }
@@ -593,21 +594,25 @@ contract PLAYMATE is IERC20 {
         return true;
     }
 
-    function setvbuy(uint256 _vbuy1, uint256 _vbuy2, uint256 _vbuy3, uint256 _vbuy4) external onlyOwner {
-        vbuy1 = _vbuy1;
-        vbuy2 = _vbuy2;
-        vbuy3 = _vbuy3;
-        vbuy4 = _vbuy4;
+    function setVBuy(uint256 _vBuy1, uint256 _vBuy2, uint256 _vBuy3, uint256 _vBuy4) external onlyOwner {
+        require(_vBuy1 < _vBuy2, "vBuy1 must be less than vBuy2");
+        vBuy1 = _vBuy1;
+        require(_vBuy2 < _vBuy3, "vBuy2 must be less than vBuy3");
+        vBuy2 = _vBuy2;
+        require(_vBuy3 < _vBuy4, "vBuy3 must be less than vBuy4");
+        vBuy3 = _vBuy3;
+        require(_vBuy4 <= 2500, "vBuy4 must be less than 25%");
+        vBuy4 = _vBuy4;
     }
 
     function getWhaleFee(address from) public view returns (uint256) {
         if(MANSION.balanceOf(from) >= 1 &&
-            MANSION.balanceOf(from) < 20 ){return vbuy1;}
+            MANSION.balanceOf(from) < 20 ){return vBuy1;}
         if(MANSION.balanceOf(from) >= 20 &&
-            MANSION.balanceOf(from) < 50 ){return vbuy2;}
+            MANSION.balanceOf(from) < 50 ){return vBuy2;}
         if(MANSION.balanceOf(from) >= 50 &&
-            MANSION.balanceOf(from) < 100 ){return vbuy3;}
-        if(MANSION.balanceOf(from) >= 100) {return vbuy4;}
+            MANSION.balanceOf(from) < 100 ){return vBuy3;}
+        if(MANSION.balanceOf(from) >= 100) {return vBuy4;}
         else{
             return 0;
         }
