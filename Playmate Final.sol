@@ -133,7 +133,7 @@ interface IRouter02 is IRouter01 {
     ) external;
 }
 
-contract Test is IERC20 {
+contract Playmates is IERC20 {
     // Ownership moved to in-contract for customizability.
     address private _owner;
 
@@ -148,8 +148,8 @@ contract Test is IERC20 {
 
     uint256 constant private startingSupply = 2_000_000;
 
-    string constant private _name = "Test";
-    string constant private _symbol = "TEST";
+    string constant private _name = "Playmates";
+    string constant private _symbol = "PLAYMATES";
     uint8 private _decimals = 18;
 
     uint256 private _tTotal = startingSupply * (10 ** _decimals);
