@@ -150,7 +150,7 @@ contract Test is IERC20 {
 
     string constant private _name = "Test";
     string constant private _symbol = "TEST";
-    uint8 private _decimals = 9;
+    uint8 private _decimals = 18;
 
     uint256 private _tTotal = startingSupply * (10 ** _decimals);
 
@@ -682,12 +682,8 @@ contract Test is IERC20 {
     function _checkLiquidityAdd(address from, address to) private {
         require(!hasLiqBeenAdded, "Liquidity already added and marked.");
         if (!_hasLimits(from, to) && to == lpPair) {
-            if (snipeBlockAmt == 0 || snipeBlockAmt > 5) {
-                _liqAddBlock = block.number + 500;
-            } else {
-                _liqAddBlock = block.number;
-            }
-
+            
+            _liqAddBlock = block.number;
             _liquidityHolders[from] = true;
             hasLiqBeenAdded = true;
             
